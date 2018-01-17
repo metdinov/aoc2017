@@ -6,16 +6,18 @@ defmodule AdventOfCode.Day5A do
     |> File.stream!
     |> Stream.map(&String.trim_trailing/1)
     |> Enum.map(&String.to_integer/1)
+    |> Zlist.from_list
     |> count_steps
   end
 
-  defp count_steps(offsets, pos \\ 0, steps \\ 0)
-  defp count_steps(offsets, pos, steps) when pos >= 0 and pos < length(offsets) do
-    count_steps(List.replace_at(offsets, pos, Enum.at(offsets, pos) + 1),
-                pos + Enum.at(offsets, pos),
-                steps + 1)
+  def count_steps(offsets, steps \\ 1)
+  def count_steps(offsets = %Zlist{focus: focus, prev: prev, next: next}, steps) 
+                  when  (focus >= 0 and focus <= length(next) or
+                        (focus < 0 and -focus <= length(prev))) do
+    new_offsets = offsets |> Zlist.set_value(focus + 1) |> Zlist.move_focus(focus)
+    count_steps(new_offsets, steps + 1)
   end
-  defp count_steps(_offsets, _pos, steps) do
+  def count_steps(_offsets, steps) do
     steps
   end
 end
