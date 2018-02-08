@@ -4,6 +4,7 @@ defmodule Zlist do
   [this blog post](https://ferd.ca/yet-another-article-on-zippers.html)
 
   More info on Zippers:
+  
   https://en.wikipedia.org/wiki/Zipper_(data_structure)
   http://learnyouahaskell.com/zippers
   http://scienceblogs.com/goodmath/2010/01/13/zippers-making-functional-upda/
@@ -52,4 +53,25 @@ defmodule Zlist do
   @spec count_remaining(Zlist.t) :: non_neg_integer
   def count_remaining(%Zlist{next: next}),
     do: Enum.count next
+
+  @spec size(Zlist.t) :: non_neg_integer
+  def size(zlist = %Zlist{focus: nil}),
+    do: count_previous(zlist) + count_remaining(zlist)
+  def size(zlist),
+    do: count_previous(zlist) + count_remaining(zlist) + 1
+end
+
+defimpl Enumerable, for: Zlist do
+
+  def count(zlist), do: {:ok, Zlist.size(zlist)}
+
+  def member?(zlist, elem) do
+    {:ok, elem === Zlist.value(zlist) or elem in zlist.prev or elem in zlist.next}
+  end
+
+  def reduce(zlist, acc, fun) do
+    zlist
+    |> Zlist.to_list
+    |> Enumerable.List.reduce(acc, fun)
+  end
 end
